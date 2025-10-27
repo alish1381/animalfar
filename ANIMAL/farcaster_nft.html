@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farcaster Animal NFT</title>
+
+  <!-- Farcaster Frame Metadata -->
+  <meta property="fc:frame" content="vNext" />
+  <meta property="og:title" content="Farcaster Animal NFT" />
+  <meta property="og:description" content="Mint your random Farcaster Animal NFT on Base" />
+  <meta property="og:image" content="icon-128.png" />
+  <meta name="theme-color" content="#8a63d2" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #8a63d2 0%, #5b47a8 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #1a1a1a;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 380px;
+      backdrop-filter: blur(10px);
+    }
+    
+    h1 {
+      font-size: clamp(24px, 5vw, 28px);
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #8a63d2, #5b47a8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    p {
+      color: #666;
+      margin-bottom: 25px;
+      font-size: 14px;
+    }
+    
+    .nft-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+      gap: 15px;
+      user-select: none;
+    }
+    
+    .character {
+      font-size: clamp(80px, 15vw, 120px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-block;
+      min-width: 100px;
+      text-align: center;
+      cursor: pointer;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    }
+    
+    .character:active {
+      transform: scale(0.95);
+    }
+    
+    .nav-btn {
+      background: rgba(138, 99, 210, 0.8);
+      color: white;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .nav-btn:hover:not(:disabled) {
+      background: rgba(138, 99, 210, 1);
+      transform: scale(1.1);
+    }
+    
+    .nav-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+    
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    button {
+      padding: 15px;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .mint-btn {
+      background: linear-gradient(135deg, #8a63d2, #5b47a8);
+      color: white;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .mint-btn:hover:not(:disabled) {
+      box-shadow: 0 8px 25px rgba(138, 99, 210, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .mint-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    
+    .mint-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      display: block;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+    
+    .status.loading {
+      background: #e6d9ff;
+      color: #5b47a8;
+      display: block;
+    }
+    
+    .share-btn {
+      margin-top: 10px;
+      background: linear-gradient(135deg, #5b47a8, #8a63d2);
+      color: #fff;
+      display: none;
+    }
+    
+    .share-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 480px) {
+      .card {
+        padding: 30px 20px;
+      }
+      
+      .nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Farcaster Animals</h1>
+    <p>Mint your random animal NFT on Base</p>
+
+    <div class="nft-container">
+      <button class="nav-btn prev" id="prevBtn" aria-label="Previous animal">‹</button>
+      <span class="character" id="animal" role="img" aria-label="Animal emoji">🦊</span>
+      <button class="nav-btn next" id="nextBtn" aria-label="Next animal">›</button>
+    </div>
+
+    <button class="mint-btn" id="mintBtn">Mint Now</button>
+    <button class="share-btn" id="shareBtn">Share on Farcaster</button>
+    <div class="status" id="status" role="alert"></div>
+  </div>
+
+  <script type="module">
+    import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.8.1/dist/ethers.min.js";
+
+    // Constants
+    const CONTRACT_ADDRESS = "0x8B5d4CC4B3A4be7b73cd540812D103879d21DF1b";
+    const BASE_CHAIN_ID = 8453n;
+    const MINT_PRICE = "0.0005";
+    const AUTO_PLAY_INTERVAL = 2000;
+    
+    const ABI = [
+      "function mintRandom() external payable",
+      "function totalSupply() public view returns (uint256)"
+    ];
+
+    const CHARACTERS = [
+      '🦊', '🐱', '🐼', '🐨', '🦁', '🐯', '🐸', 
+      '🐵', '🦄', '🐲', '🐶', '🐰', '🦓', '🐹', '🐢'
+    ];
+
+    // DOM Elements
+    const elements = {
+      animal: document.getElementById('animal'),
+      status: document.getElementById('status'),
+      shareBtn: document.getElementById('shareBtn'),
+      mintBtn: document.getElementById('mintBtn'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn')
+    };
+
+    // State
+    let state = {
+      currentIndex: 0,
+      autoPlayInterval: null,
+      isMinting: false
+    };
+
+    // Character Display Functions
+    function updateCharacter() {
+      const { animal } = elements;
+      animal.style.opacity = '0';
+      animal.style.transform = 'scale(0.9)';
+      
+      setTimeout(() => {
+        animal.textContent = CHARACTERS[state.currentIndex];
+        animal.style.opacity = '1';
+        animal.style.transform = 'scale(1)';
+      }, 150);
+    }
+
+    function nextCharacter() {
+      state.currentIndex = (state.currentIndex + 1) % CHARACTERS.length;
+      updateCharacter();
+      resetAutoPlay();
+    }
+
+    function prevCharacter() {
+      state.currentIndex = (state.currentIndex - 1 + CHARACTERS.length) % CHARACTERS.length;
+      updateCharacter();
+      resetAutoPlay();
+    }
+
+    // Auto-play Functions
+    function startAutoPlay() {
+      state.autoPlayInterval = setInterval(nextCharacter, AUTO_PLAY_INTERVAL);
+    }
+
+    function stopAutoPlay() {
+      if (state.autoPlayInterval) {
+        clearInterval(state.autoPlayInterval);
+        state.autoPlayInterval = null;
+      }
+    }
+
+    function resetAutoPlay() {
+      stopAutoPlay();
+      startAutoPlay();
+    }
+
+    // Status Display
+    function showStatus(type, msg, includeSpinner = false) {
+      const { status } = elements;
+      status.className = `status ${type}`;
+      status.innerHTML = includeSpinner 
+        ? `${msg}<span class="spinner"></span>` 
+        : msg;
+    }
+
+    function hideStatus() {
+      elements.status.className = 'status';
+      elements.status.textContent = '';
+    }
+
+    // Button State Management
+    function setButtonsDisabled(disabled) {
+      elements.mintBtn.disabled = disabled;
+      elements.prevBtn.disabled = disabled;
+      elements.nextBtn.disabled = disabled;
+    }
+
+    // Wallet & Network Validation
+    async function validateWalletAndNetwork() {
+      if (!window.ethereum) {
+        throw new Error('Please install MetaMask or another Web3 wallet');
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      
+      const network = await provider.getNetwork();
+      if (network.chainId !== BASE_CHAIN_ID) {
+        throw new Error('Please switch to Base network (Chain ID: 8453)');
+      }
+
+      return provider;
+    }
+
+    // Main Mint Function
+    async function mintNFT() {
+      if (state.isMinting) return;
+      
+      try {
+        state.isMinting = true;
+        setButtonsDisabled(true);
+        stopAutoPlay();
+
+        showStatus('loading', 'Connecting wallet...', true);
+        const provider = await validateWalletAndNetwork();
+        const signer = await provider.getSigner();
+
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        const value = ethers.parseEther(MINT_PRICE);
+        
+        showStatus('loading', 'Minting your NFT...', true);
+        const tx = await contract.mintRandom({ value });
+        
+        showStatus('loading', 'Confirming transaction...', true);
+        await tx.wait();
+
+        // Show random character after mint
+        state.currentIndex = Math.floor(Math.random() * CHARACTERS.length);
+        updateCharacter();
+
+        showStatus('success', '🎉 Successfully minted your NFT!');
+        elements.shareBtn.style.display = 'block';
+
+      } catch (err) {
+        console.error('Mint error:', err);
+        
+        let errorMsg = 'Mint failed. Please try again.';
+        if (err.message.includes('user rejected')) {
+          errorMsg = 'Transaction was rejected';
+        } else if (err.message.includes('insufficient funds')) {
+          errorMsg = 'Insufficient funds for minting';
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+        
+        showStatus('error', errorMsg);
+        startAutoPlay();
+      } finally {
+        state.isMinting = false;
+        setButtonsDisabled(false);
+      }
+    }
+
+    // Share Function
+    function shareOnFarcaster() {
+      const shareUrl = window.location.href;
+      const currentAnimal = CHARACTERS[state.currentIndex];
+      const castText = `I just minted a ${currentAnimal} on Farcaster Animals! 🐾 Check it out: ${shareUrl}`;
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
+      window.open(warpcastUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    // Event Listeners
+    elements.prevBtn.addEventListener('click', prevCharacter);
+    elements.nextBtn.addEventListener('click', nextCharacter);
+    elements.mintBtn.addEventListener('click', mintNFT);
+    elements.shareBtn.addEventListener('click', shareOnFarcaster);
+    
+    // Touch/Click on character to randomize
+    elements.animal.addEventListener('click', () => {
+      state.currentIndex = Math.floor(Math.random() * CHARACTERS.length);
+      updateCharacter();
+      resetAutoPlay();
+    });
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+      if (state.isMinting) return;
+      
+      if (e.key === 'ArrowLeft') {
+        prevCharacter();
+      } else if (e.key === 'ArrowRight') {
+        nextCharacter();
+      }
+    });
+
+    // Initialize
+    startAutoPlay();
+    updateCharacter();
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', stopAutoPlay);
+  </script>
+</body>
+</html>
